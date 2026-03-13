@@ -12,6 +12,9 @@
 
 <br/>
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-FFD208?style=for-the-badge&labelColor=000000&logo=vercel&logoColor=FFD208)](https://paychain-on-chain-payroll-web.vercel.app/en)
+[![YouTube Demo](https://img.shields.io/badge/Watch%20Demo-YouTube-FFD208?style=for-the-badge&labelColor=000000&logo=youtube&logoColor=FFD208)](https://www.youtube.com/watch?v=MmXgJsYRZHo)
+
 [![Built with fhEVM](https://img.shields.io/badge/Built%20with-fhEVM-FFD208?style=flat-square&labelColor=000000)](https://www.zama.ai/)
 [![Zama Bounty](https://img.shields.io/badge/Zama-Special%20Bounty-FFD208?style=flat-square&labelColor=000000)](https://www.zama.ai/)
 [![ERC-7984](https://img.shields.io/badge/Token-ERC--7984-FFD208?style=flat-square&labelColor=000000)](https://eips.ethereum.org/)
@@ -26,18 +29,29 @@
 
 <table width="100%">
 <tr>
-<td width="50%" valign="top" align="center">
+<td width="100%" valign="top" align="center">
+
+**🚀 &nbsp;Try it now**
+
+[Live Demo on Vercel](https://paychain-on-chain-payroll-web.vercel.app/en) &nbsp;·&nbsp; [Watch Demo on YouTube](https://www.youtube.com/watch?v=MmXgJsYRZHo)
+
+</td>
+</tr>
+<tr>
+<td width="100%" valign="top" align="center">
 
 **📖 &nbsp;Understand the project**
 
 [Overview](#-overview) &nbsp;·&nbsp; [Why Paychain](#-why-paychain) &nbsp;·&nbsp; [Participants](#-participants--entities) &nbsp;·&nbsp; [Architecture](#-architecture) &nbsp;·&nbsp; [Smart Contracts](#-smart-contracts) &nbsp;·&nbsp; [On-chain / Off-chain](#-on-chain--off-chain-design) &nbsp;·&nbsp; [GDPR](#-gdpr--privacy-by-design) &nbsp;·&nbsp; [Security](#-security)
 
 </td>
-<td width="50%" valign="top" align="center">
+</tr>
+<tr>
+<td width="100%" valign="top" align="center">
 
 **🛠️ &nbsp;Build and deploy**
 
-[Prerequisites](#-prerequisites) &nbsp;·&nbsp; [Local Deployment](#-local-deployment) &nbsp;·&nbsp; [Sepolia Deployment](#-sepolia-deployment) &nbsp;·&nbsp; [End-to-End Flow](#-end-to-end-user-flow) &nbsp;·&nbsp; [Tech Stack](#-tech-stack) &nbsp;
+[Prerequisites](#-prerequisites) &nbsp;·&nbsp; [Local Deployment](#-local-deployment) &nbsp;·&nbsp; [Sepolia Deployment](#-sepolia-deployment) &nbsp;·&nbsp; [End-to-End Flow](#-end-to-end-user-flow) &nbsp;·&nbsp; [Tech Stack](#-tech-stack)
 
 </td>
 </tr>
@@ -45,6 +59,39 @@
 
 ---
 
+</div>
+
+<br/>
+
+## 🎬 Live Demo
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="50%">
+
+### 🌐 Try it Live
+
+[![Live Demo](https://img.shields.io/badge/Open%20Live%20Demo-Vercel-ffffff?style=for-the-badge&logo=vercel&logoColor=000000&labelColor=000000)](https://paychain-on-chain-payroll-web.vercel.app/en)
+
+Runs against **Sepolia testnet**<br/>
+Connect MetaMask on Sepolia to explore<br/>
+the Employer and Employee portals.
+
+</td>
+<td align="center" width="50%">
+
+### 🎥 Watch the Demo
+
+[![Watch on YouTube](https://img.shields.io/badge/Watch%20Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white&labelColor=FF0000)](https://www.youtube.com/watch?v=MmXgJsYRZHo)
+
+Full **end-to-end walkthrough** of<br/>
+the confidential payroll flow —<br/>
+from wrap to payment to unwrap.
+
+</td>
+</tr>
+</table>
 </div>
 
 <br/>

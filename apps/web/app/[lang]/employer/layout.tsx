@@ -7,8 +7,8 @@ export default async function EmployerLayout({
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  return <EmployerContextProvider locale={lang}>{children}</EmployerContextProvider>;
+  return <EmployerContextProvider locale={lang as Locale}>{children}</EmployerContextProvider>;
 }

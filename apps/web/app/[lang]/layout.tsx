@@ -1,7 +1,7 @@
 import { Providers } from "./providers";
 import "./globals.css";
 import type { Metadata } from "next";
-import { i18n, Locale } from "@/i18n-config";
+import { i18n } from "@/i18n-config";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default async function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
   

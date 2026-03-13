@@ -8,7 +8,7 @@ import { EmployeeHelp } from "@/components/employee/EmployeeHelp";
 import { useDictionary } from "@/lib/useDictionary";
 import type { Locale } from "@/i18n-config";
 
-export default function EmployeeHelpPage({ params }: { params: Promise<{ lang: Locale }> }) {
+export default function EmployeeHelpPage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
   const lang = use(params).lang;
@@ -20,7 +20,7 @@ export default function EmployeeHelpPage({ params }: { params: Promise<{ lang: L
 
   return (
     <EmployeeHelp
-      locale={lang}
+      locale={lang as Locale}
       // Status
       status={status}
     />

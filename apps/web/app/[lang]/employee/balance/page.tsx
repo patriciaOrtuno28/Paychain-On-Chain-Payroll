@@ -13,7 +13,7 @@ import { EmployeeBalance } from "@/components/employee/EmployeeBalance";
 import { useDictionary } from "@/lib/useDictionary";
 import type { Locale } from "@/i18n-config";
 
-export default function EmployeeBalancePage({ params }: { params: Promise<{ lang: Locale }> }) {
+export default function EmployeeBalancePage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
@@ -250,7 +250,7 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
 
   return (
     <EmployeeBalance
-      locale={lang}
+      locale={lang as Locale}
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}
       tokenSymbol={tokenSymbol ?? "cUSDC"}

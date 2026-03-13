@@ -8,7 +8,7 @@ import { EmployeeSettings } from "@/components/employee/EmployeeSettings";
 import { useDictionary } from "@/lib/useDictionary";
 import type { Locale } from "@/i18n-config";
 
-export default function EmployeeSettingsPage({ params }: { params: Promise<{ lang: Locale }> }) {
+export default function EmployeeSettingsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
   const lang = use(params).lang;
@@ -20,7 +20,7 @@ export default function EmployeeSettingsPage({ params }: { params: Promise<{ lan
 
   return (
     <EmployeeSettings
-      locale={lang}
+      locale={lang as Locale}
       // Network state
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}

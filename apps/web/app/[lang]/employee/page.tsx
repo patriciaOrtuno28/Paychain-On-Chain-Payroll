@@ -30,7 +30,7 @@ const erc20Abi = [
   },
 ] as const;
 
-export default function EmployeePage({ params }: { params: Promise<{ lang: Locale }> }) {
+export default function EmployeePage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
@@ -141,7 +141,7 @@ export default function EmployeePage({ params }: { params: Promise<{ lang: Local
 
   return (
     <EmployeeSalary
-      locale={lang}
+      locale={lang as Locale}
       // Network state
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}

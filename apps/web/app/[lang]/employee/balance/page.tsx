@@ -238,7 +238,7 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
     }
   };
 
-  const onSelectPayroll = (addr: Address) => {
+  const onSelectPayroll = (addr: Address | "") => {
     setSelectedPayroll(addr);
     setBalancePlain(null);
     setBalanceFormatted(null);
@@ -250,7 +250,7 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
 
   return (
     <EmployeeBalance
-      locale={lang as Locale}
+      locale={lang}
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}
       tokenSymbol={tokenSymbol ?? "cUSDC"}

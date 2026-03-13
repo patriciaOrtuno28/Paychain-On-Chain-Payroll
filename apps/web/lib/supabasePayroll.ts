@@ -201,6 +201,40 @@ export async function updateEmployeeOffchain(
   return (json.updated ?? null) as EmployerRosterRow;
 }
 
+// ── Employee identity (PII) ───────────────────────────────────────────────────
+
+export type EmployeeIdentity = {
+  given_name: string;
+  family_name: string;
+  dni_type: string;
+  dni_value: string;
+  email: string;
+};
+
+export async function getEmployeeIdentity(
+  params: { employment_chain_binding_id: string },
+  employerWallet: Address
+): Promise<EmployeeIdentity> {
+  const qs = new URLSearchParams({
+    employment_chain_binding_id: params.employment_chain_binding_id,
+  });
+  const res = await fetch(`/api/company/employee-identity?${qs}`, {
+    headers: employerHeaders(employerWallet),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json?.error?.message ?? "Failed to fetch employee identity");
+  return json as EmployeeIdentity;
+}
+
+export type UpdateEmployeePiiParams = {
+  employment_chain_binding_id: string;
+  given_name?: string;
+  family_name?: string;
+  dni_type?: string;
+  dni_value?: string;
+  email?: string | null;
+};
+
 // ── Remove employee (cascade delete) ─────────────────────────────────────────
 
 export async function removeEmployeeFromCompany(

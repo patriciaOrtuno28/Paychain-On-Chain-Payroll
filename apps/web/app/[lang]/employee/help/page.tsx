@@ -20,7 +20,7 @@ export default function EmployeeHelpPage({ params }: { params: Promise<{ lang: s
 
   return (
     <EmployeeHelp
-      locale={lang as Locale}
+      locale={lang}
       // Status
       status={status}
     />

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Dictionary } from "@/lib/useDictionary";
-import type { EmployerRosterRow, PayrollCadence, UpdateEmployeeOffchainParams } from "@/lib/supabasePayroll";
+import type { EmployeeIdentity, EmployerRosterRow, PayrollCadence, UpdateEmployeeOffchainParams, UpdateEmployeePiiParams } from "@/lib/supabasePayroll";
 
 const CADENCE_KEYS: PayrollCadence[] = ["monthly", "semiMonthly", "weekly"];
 const CADENCE_LABELS: Record<PayrollCadence, string> = {
@@ -19,8 +19,13 @@ const CADENCE_LABELS: Record<PayrollCadence, string> = {
 
 type Props = {
   row: EmployerRosterRow;
+  identity: EmployeeIdentity | null;
+  identityLoading: boolean;
   onSaveOffchain: (
     updates: Omit<UpdateEmployeeOffchainParams, "employment_chain_binding_id">
+  ) => Promise<void>;
+  onSavePii: (
+    updates: Omit<UpdateEmployeePiiParams, "employment_chain_binding_id">
   ) => Promise<void>;
 
   underlyingSymbol: string;
@@ -38,7 +43,10 @@ type Props = {
 export function EditEmployeePanel(props: Props) {
   const {
     row,
+    identity,
+    identityLoading,
     onSaveOffchain,
+    onSavePii,
     underlyingSymbol,
     updateSalaryInput,
     setUpdateSalaryInput,
@@ -57,6 +65,15 @@ export function EditEmployeePanel(props: Props) {
   const [saving, setSaving] = useState(false);
   const [localStatus, setLocalStatus] = useState<string>("");
 
+  // PII fields
+  const [givenName, setGivenName] = useState("");
+  const [familyName, setFamilyName] = useState("");
+  const [dniType, setDniType] = useState("");
+  const [dniValue, setDniValue] = useState("");
+  const [email, setEmail] = useState("");
+  const [savingPii, setSavingPii] = useState(false);
+  const [piiStatus, setPiiStatus] = useState<string>("");
+
   useEffect(() => {
     setJobTitle(row.job_title ?? "");
     setStartDate(row.start_date);
@@ -64,7 +81,18 @@ export function EditEmployeePanel(props: Props) {
     setActive(!!row.active);
     setPayrollCadence(row.payroll_cadence ?? "monthly");
     setLocalStatus("");
+    setPiiStatus("");
   }, [row.employment_chain_binding_id]);
+
+  useEffect(() => {
+    if (identity) {
+      setGivenName(identity.given_name);
+      setFamilyName(identity.family_name);
+      setDniType(identity.dni_type);
+      setDniValue(identity.dni_value);
+      setEmail(identity.email ?? "");
+    }
+  }, [identity]);
 
   const dirty = useMemo(() => {
     const jt = jobTitle.trim();
@@ -76,6 +104,36 @@ export function EditEmployeePanel(props: Props) {
     if (payrollCadence !== (row.payroll_cadence ?? "monthly")) return true;
     return false;
   }, [active, employmentStatus, jobTitle, payrollCadence, row.active, row.employment_status, row.job_title, row.payroll_cadence, row.start_date, startDate]);
+
+  async function handleSavePii() {
+    setSavingPii(true);
+    setPiiStatus("");
+    try {
+      const updates: Omit<UpdateEmployeePiiParams, "employment_chain_binding_id"> = {};
+      if (identity) {
+        if (givenName.trim() !== identity.given_name) updates.given_name = givenName.trim();
+        if (familyName.trim() !== identity.family_name) updates.family_name = familyName.trim();
+        if (dniType !== identity.dni_type) updates.dni_type = dniType;
+        if (dniValue.trim() !== identity.dni_value) updates.dni_value = dniValue.trim();
+        if ((email ?? "") !== (identity.email ?? "")) updates.email = email || null;
+      }
+      if (Object.keys(updates).length === 0) return;
+      await onSavePii(updates);
+      setPiiStatus(`✅ ${t.saved}`);
+    } catch (e) {
+      setPiiStatus(`❌ ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setSavingPii(false);
+    }
+  }
+
+  const piiDirty = identity
+    ? givenName.trim() !== identity.given_name ||
+      familyName.trim() !== identity.family_name ||
+      dniType !== identity.dni_type ||
+      dniValue.trim() !== identity.dni_value ||
+      (email ?? "") !== (identity.email ?? "")
+    : false;
 
   async function handleSave() {
     setSaving(true);
@@ -217,6 +275,103 @@ export function EditEmployeePanel(props: Props) {
             </Button>
             {dirty && <span className="text-[11px] text-muted-foreground">{t.unsavedChanges}</span>}
           </div>
+        </div>
+
+        {/* PII / Identity */}
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+            {t.piiSectionTitle ?? "Personal Identity (encrypted)"}
+          </p>
+
+          {identityLoading ? (
+            <p className="text-xs text-muted-foreground">{t.loading ?? "Loading…"}</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    {t.givenName ?? "First name"}
+                  </p>
+                  <Input
+                    value={givenName}
+                    onChange={(e) => setGivenName(e.target.value)}
+                    className="bg-muted border-border text-foreground h-9 text-sm"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    {t.familyName ?? "Last name"}
+                  </p>
+                  <Input
+                    value={familyName}
+                    onChange={(e) => setFamilyName(e.target.value)}
+                    className="bg-muted border-border text-foreground h-9 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    {t.dniType ?? "ID type"}
+                  </p>
+                  <Input
+                    value={dniType}
+                    onChange={(e) => setDniType(e.target.value)}
+                    placeholder="dni / passport"
+                    className="bg-muted border-border text-foreground h-9 text-sm"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    {t.dniValue ?? "ID number"}
+                  </p>
+                  <Input
+                    value={dniValue}
+                    onChange={(e) => setDniValue(e.target.value)}
+                    className="bg-muted border-border text-foreground h-9 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                  {t.email ?? "Email"}
+                </p>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-muted border-border text-foreground h-9 text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  onClick={() => handleSavePii().catch(() => undefined)}
+                  disabled={savingPii || !piiDirty}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 text-sm"
+                >
+                  {savingPii ? t.saving : (t.savePii ?? "Save identity")}
+                </Button>
+                {piiDirty && (
+                  <span className="text-[11px] text-muted-foreground">{t.unsavedChanges}</span>
+                )}
+              </div>
+
+              {piiStatus && (
+                <div
+                  className={`px-3 py-2 text-sm border ${
+                    piiStatus.startsWith("✅")
+                      ? "bg-success/10 text-success-foreground border-success/20"
+                      : "bg-destructive/10 text-destructive-foreground border-destructive/20"
+                  }`}
+                >
+                  {piiStatus}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Salary update */}

@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Sidebar } from "@/components/Sidebar";
+import { useAccount } from "wagmi";
+import {
+  getEmployeeIdentity,
+  updateEmployeeOffchain,
+  type EmployeeIdentity,
+  type UpdateEmployeePiiParams,
+} from "@/lib/supabasePayroll";
 import type { EmployerRosterRow } from "@/lib/supabasePayroll";
 import { DeleteCompanyButton } from "@/components/employer/DeleteCompanyButton";
 import type { Locale } from "@/i18n-config";
@@ -76,7 +83,7 @@ interface EmployerDashboardProps {
   rosterRows: EmployerRosterRow[];
   rosterLoading: boolean;
   selectedEmployee: Address | "";
-  onSelectEmployee: (addr: Address | string) => void;
+  onSelectEmployee: (addr: Address | "") => void;
   onRemoveEmployee: (row: EmployerRosterRow) => void;
   onUpdateEmployeeOffchain: (
     row: EmployerRosterRow,
@@ -193,8 +200,11 @@ export function EmployerDashboard({
 }: EmployerDashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dict = useDictionary(locale);
+  const { address: me } = useAccount();
 
   const [showPayrollModal, setShowPayrollModal] = useState(false);
+  const [identity, setIdentity] = useState<EmployeeIdentity | null>(null);
+  const [identityLoading, setIdentityLoading] = useState(false);
 
   const selectedRow = useMemo(() => {
     if (!selectedEmployee) return null;
@@ -211,6 +221,28 @@ export function EmployerDashboard({
     }
     return set.size;
   }, [rosterRows]);
+
+  useEffect(() => {
+    if (!selectedRow || !me) { setIdentity(null); return; }
+    setIdentityLoading(true);
+    getEmployeeIdentity({ employment_chain_binding_id: selectedRow.employment_chain_binding_id }, me)
+      .then(setIdentity)
+      .catch(() => setIdentity(null))
+      .finally(() => setIdentityLoading(false));
+  }, [selectedRow?.employment_chain_binding_id, me]);
+
+  async function handleSavePii(updates: Omit<UpdateEmployeePiiParams, "employment_chain_binding_id">) {
+    if (!selectedRow || !me) throw new Error("No employee selected");
+    await updateEmployeeOffchain(
+      { employment_chain_binding_id: selectedRow.employment_chain_binding_id, ...updates },
+      me
+    );
+    const fresh = await getEmployeeIdentity(
+      { employment_chain_binding_id: selectedRow.employment_chain_binding_id },
+      me
+    );
+    setIdentity(fresh);
+  }
 
   if (!dict) return null;
   const t = dict.employerDashboard as any;
@@ -520,6 +552,7 @@ export function EmployerDashboard({
                 historyDecryption: t.historyDecryption,
                 decryptionWarning: t.decryptionWarning,
               }}
+              onRunPayroll={(row) => onSelectEmployee(row.wallet_address as Address)}
             />
           </div>
         </div>
@@ -626,6 +659,9 @@ export function EmployerDashboard({
             {selectedRow ? (
               <EditEmployeePanel
                 row={selectedRow}
+                identity={identity}
+                identityLoading={identityLoading}
+                onSavePii={handleSavePii}
                 onSaveOffchain={(updates) => onUpdateEmployeeOffchain(selectedRow, updates)}
                 underlyingSymbol={underlyingSymbol}
                 updateSalaryInput={updateSalaryInput}

@@ -20,7 +20,7 @@ export default function EmployeeSettingsPage({ params }: { params: Promise<{ lan
 
   return (
     <EmployeeSettings
-      locale={lang as Locale}
+      locale={lang}
       // Network state
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}

@@ -305,6 +305,7 @@ export interface Dictionary {
     active: string;
     inactive: string;
 
+    piiSectionTitle: string;
     offchainSectionTitle: string;
     jobTitle: string;
     jobTitlePlaceholder: string;
@@ -329,6 +330,14 @@ export interface Dictionary {
     selectedPeriod: string;
     runId: string;
     runPayrollForThisEmployee: string;
+
+    loading: string;
+    givenName: string;
+    familyName: string;
+    dniType: string;
+    dniValue: string;
+    email: string;
+    savePii: string;
   };
 
   employeePage: {

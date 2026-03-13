@@ -11,7 +11,7 @@ type Props = {
   loading: boolean;
   error: string | null;
   selectedPayroll: Address | "";
-  onSelect: (addr: Address) => void;
+  onSelect: (addr: Address | "") => void;
   t: Dictionary;
 };
 

@@ -116,7 +116,7 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
     }
   };
 
-  const onSelectPayroll = (addr: Address) => {
+  const onSelectPayroll = (addr: Address | "") => {
     setSelectedPayroll(addr);
     setSalaryPlain(null);
     setSalaryFormatted(null);
@@ -126,7 +126,7 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
 
   return (
     <EmployeeSalary
-      locale={lang as Locale}
+      locale={lang}
       // Network state
       chainId={chainId}
       canUseFhe={chainId === sepolia.id}

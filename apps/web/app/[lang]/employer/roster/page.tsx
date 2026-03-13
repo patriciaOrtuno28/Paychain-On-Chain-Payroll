@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Address } from "viem";
 import { EmployeeRoster } from "@/components/employer/EmployeeRoster";
 import { EmployerPageShell } from "@/components/employer/EmployerPageShell";
 import { SingleEmployeePayrollModal } from "@/components/employer/SingleEmployeePayrollModal";
@@ -18,6 +19,11 @@ export default function EmployerRosterPage() {
 
   if (!dict) return null;
 
+  function handleSelect(addr: Address) {
+    ctx.onSelectEmployee(addr);
+    router.push(`/${ctx.locale}/employer/edit`);
+  }
+
   function handleRunPayroll(row: EmployerRosterRow) {
     ctx.onSelectEmployee(row.wallet_address);
     setPayrollModalEmployee(row);
@@ -28,7 +34,7 @@ export default function EmployerRosterPage() {
       <EmployeeRoster
         rows={ctx.rosterRows}
         loading={ctx.rosterLoading}
-        onSelect={(addr) => ctx.onSelectEmployee(addr)}
+        onSelect={handleSelect}
         onRemove={ctx.onRemoveEmployee}
         t={dict.employeeRoster}
         selectedEmployee={ctx.selectedEmployee}

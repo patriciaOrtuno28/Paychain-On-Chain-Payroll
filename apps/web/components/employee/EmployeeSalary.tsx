@@ -26,7 +26,7 @@ interface EmployeeSalaryProps {
   bindingsLoading: boolean;
   bindingsError: string | null;
   selectedPayroll: Address | "";
-  onSelectPayroll: (addr: Address) => void;
+  onSelectPayroll: (addr: Address | "") => void;
 
   // Salary
   salaryHandle?: string;

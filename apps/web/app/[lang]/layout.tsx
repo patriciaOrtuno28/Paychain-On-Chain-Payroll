@@ -1,7 +1,7 @@
 import { Providers } from "./providers";
 import "./globals.css";
 import type { Metadata } from "next";
-import { i18n } from "@/i18n-config";
+import { i18n, Locale } from "@/i18n-config";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default async function RootLayout({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  
+
   return (
     <html lang={lang} suppressHydrationWarning>
       <head>

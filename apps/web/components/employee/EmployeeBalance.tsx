@@ -27,7 +27,7 @@ interface EmployeeBalanceProps {
   bindingsLoading: boolean;
   bindingsError: string | null;
   selectedPayroll: Address | "";
-  onSelectPayroll: (addr: Address) => void;
+  onSelectPayroll: (addr: Address | "") => void;
 
   // Last payment
   lastPaymentHandle?: string;

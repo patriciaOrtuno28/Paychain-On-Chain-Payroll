@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Zama Brand Colors - https://www.zama.org/brand-kit */
+:root {
+  /* Brand colors */
+  --zama-yellow: #FFD208;
+  --zama-black: #000000;
+  --zama-dark-gray: #2D2D2D;
+  --zama-light-gray: #F4F4F4;
+  --zama-white: #FFFFFF;
+
+  /* Light theme (default) */
+  --background: var(--zama-light-gray);
+  --foreground: var(--zama-black);
+  --card: var(--zama-white);
+  --card-foreground: var(--zama-black);
+  --popover: var(--zama-white);
+  --popover-foreground: var(--zama-black);
+  --primary: var(--zama-yellow);
+  --primary-foreground: var(--zama-black);
+  --secondary: var(--zama-light-gray);
+  --secondary-foreground: var(--zama-black);
+  --muted: var(--zama-light-gray);
+  --muted-foreground: #6B7280;
+  --accent: var(--zama-yellow);
+  --accent-foreground: var(--zama-black);
+  --destructive: #EF4444;
+  --destructive-foreground: #991B1B;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: var(--zama-yellow);
+  --chart-1: var(--zama-yellow);
+  --chart-2: #06B6D4;
+  --chart-3: #8B5CF6;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
+  --radius: 0;
+  --sidebar: var(--zama-white);
+  --sidebar-foreground: var(--zama-black);
+  --sidebar-primary: var(--zama-yellow);
+  --sidebar-primary-foreground: var(--zama-black);
+  --sidebar-accent: var(--zama-light-gray);
+  --sidebar-accent-foreground: var(--zama-black);
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: var(--zama-yellow);
+  --success: #10B981;
+  --success-foreground: #065F46;
+  --warning: var(--zama-yellow);
+  --warning-foreground: var(--zama-black);
+}
+
+/* Dark theme */
+.dark {
+  --background: var(--zama-black);
+  --foreground: var(--zama-white);
+  --card: var(--zama-dark-gray);
+  --card-foreground: var(--zama-white);
+  --popover: var(--zama-dark-gray);
+  --popover-foreground: var(--zama-white);
+  --primary: var(--zama-yellow);
+  --primary-foreground: var(--zama-black);
+  --secondary: var(--zama-dark-gray);
+  --secondary-foreground: var(--zama-light-gray);
+  --muted: var(--zama-dark-gray);
+  --muted-foreground: #9CA3AF;
+  --accent: var(--zama-yellow);
+  --accent-foreground: var(--zama-black);
+  --destructive: #EF4444;
+  --destructive-foreground: #FECACA;
+  --border: var(--zama-dark-gray);
+  --input: var(--zama-dark-gray);
+  --ring: var(--zama-yellow);
+  --sidebar: var(--zama-dark-gray);
+  --sidebar-foreground: var(--zama-white);
+  --sidebar-primary: var(--zama-yellow);
+  --sidebar-primary-foreground: var(--zama-black);
+  --sidebar-accent: var(--zama-dark-gray);
+  --sidebar-accent-foreground: var(--zama-white);
+  --sidebar-border: var(--zama-dark-gray);
+  --sidebar-ring: var(--zama-yellow);
+  --success: #10B981;
+  --success-foreground: #D1FAE5;
+  --warning: var(--zama-yellow);
+  --warning-foreground: var(--zama-black);
+}
+
+@theme inline {
+  /* Zama typography - Telegraf font family */
+  --font-sans: 'Telegraf', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Typography - Telegraf font family */
+.font-sans {
+  font-family: 'Telegraf', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.font-mono {
+  font-family: 'Geist Mono', 'Geist Mono Fallback', monospace;
+}
+
+/* Max-width containers */
+.max-w-content {
+  max-width: 1000px;
+}
+
+.max-w-narrow {
+  max-width: 720px;
+}
+
+/* Square corners for professional aesthetic */
+.rounded-none {
+  border-radius: 0;
+}

@@ -1,0 +1,175 @@
+///////////////////////////////////////////////////////////
+// Simplified MVP Payroll + GDPR-friendly off-chain data
+// Paste into dbdiagram.io
+///////////////////////////////////////////////////////////
+
+Table company {
+  company_id uuid [pk]
+  legal_name text [not null]
+  country_code char(2) [not null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table company_onchain_binding {
+  company_onchain_binding_id uuid [pk]
+  company_id uuid [not null, ref: > company.company_id]
+  chain_id bigint [not null]
+  payroll_contract_address text [not null]
+  employer_wallet_address text [not null]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (chain_id, payroll_contract_address) [unique]
+    (chain_id, employer_wallet_address) [unique]
+  }
+}
+
+///////////////////////////////////////////////////////////
+// PERSON (employee identity stored off-chain, encrypted)
+///////////////////////////////////////////////////////////
+
+Table person {
+  person_id uuid [pk]
+  status text [not null, note: 'active | inactive']
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table person_identity {
+  person_id uuid [pk, ref: > person.person_id] // 1:1
+  given_name_enc bytea [not null]
+  family_name_enc bytea [not null]
+  dni_type text [not null, note: 'DNI | NIE | NIF | PASSPORT']
+  dni_value_enc bytea [not null]
+  dni_search_hmac bytea [not null, unique] // HMAC for lookup, not plaintext hash
+  ssn_value_enc bytea // social security no. (encrypted)
+  email_enc bytea
+  address_enc bytea
+  encryption_key_ref text [not null]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table person_wallet {
+  person_wallet_id uuid [pk]
+  person_id uuid [not null, ref: > person.person_id]
+  chain_id bigint [not null]
+  wallet_address text [not null]
+  active boolean [not null, default: true]
+  verified_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (chain_id, wallet_address) [unique]
+  }
+}
+
+///////////////////////////////////////////////////////////
+// EMPLOYMENT RELATIONSHIP
+///////////////////////////////////////////////////////////
+
+Table employment {
+  employment_id uuid [pk]
+  company_id uuid [not null, ref: > company.company_id]
+  person_id uuid [not null, ref: > person.person_id]
+  employment_status text [not null, note: 'active | suspended | terminated']
+  start_date date [not null]
+  end_date date
+  job_title text
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (company_id, person_id, start_date) [unique]
+  }
+}
+
+Table employment_chain_binding {
+  employment_chain_binding_id uuid [pk]
+  employment_id uuid [not null, ref: > employment.employment_id]
+  company_onchain_binding_id uuid [not null, ref: > company_onchain_binding.company_onchain_binding_id]
+  person_wallet_id uuid [not null, ref: > person_wallet.person_wallet_id]
+  active boolean [not null, default: true]
+  linked_at timestamptz [not null, default: `now()`]
+  unlinked_at timestamptz
+
+  Indexes {
+    (employment_id, company_onchain_binding_id, person_wallet_id) [unique]
+  }
+}
+
+///////////////////////////////////////////////////////////
+// PAYROLL
+///////////////////////////////////////////////////////////
+
+Table payroll_period {
+  payroll_period_id uuid [pk]
+  company_id uuid [not null, ref: > company.company_id]
+  period_code text [not null, note: 'e.g. 2026-02']
+  period_start date [not null]
+  period_end date [not null]
+  pay_date date [not null]
+  status text [not null, note: 'open | approved | paid | reported | closed']
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (company_id, period_code) [unique]
+  }
+}
+
+Table payroll_entry {
+  payroll_entry_id uuid [pk]
+  payroll_period_id uuid [not null, ref: > payroll_period.payroll_period_id]
+  employment_id uuid [not null, ref: > employment.employment_id]
+  currency_code char(3) [not null]
+  gross_amount_minor bigint [not null]
+  net_amount_minor bigint [not null]
+  tax_withheld_minor bigint
+  social_security_minor bigint
+  onchain_payment_tx_hash text
+  onchain_payment_status text [not null, note: 'pending | confirmed | failed | n/a']
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (payroll_period_id, employment_id) [unique]
+  }
+}
+
+///////////////////////////////////////////////////////////
+// AUTHORITY REPORTING (simplified)
+///////////////////////////////////////////////////////////
+
+Table authority_submission {
+  authority_submission_id uuid [pk]
+  company_id uuid [not null, ref: > company.company_id]
+  payroll_period_id uuid [ref: > payroll_period.payroll_period_id]
+  authority_type text [not null, note: 'tax | social_security | labor']
+  submission_type text [not null] // e.g. country form/report code
+  status text [not null, note: 'draft | sent | accepted | rejected']
+  payload_enc bytea // encrypted snapshot of what was sent
+  submitted_at timestamptz
+  acknowledgement_ref text
+  created_at timestamptz [not null, default: `now()`]
+}
+
+///////////////////////////////////////////////////////////
+// MINIMUM COMPLIANCE OPS
+///////////////////////////////////////////////////////////
+
+Table access_audit_log {
+  access_audit_log_id uuid [pk]
+  actor_id text [not null] // user/service identifier
+  action text [not null] // READ_PII, EXPORT_REPORT, UPDATE_EMPLOYEE...
+  target_type text [not null] // person_identity, payroll_entry, authority_submission...
+  target_id uuid
+  legal_purpose text [not null] // payroll, tax filing, support, DSR...
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table data_subject_request {
+  dsr_id uuid [pk]
+  person_id uuid [not null, ref: > person.person_id]
+  request_type text [not null, note: 'access | rectification | erasure | restriction | portability']
+  status text [not null, note: 'received | in_progress | completed | rejected']
+  received_at timestamptz [not null, default: `now()`]
+  due_at timestamptz [not null]
+  closed_at timestamptz
+}

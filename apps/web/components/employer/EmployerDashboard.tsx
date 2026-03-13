@@ -76,7 +76,7 @@ interface EmployerDashboardProps {
   rosterRows: EmployerRosterRow[];
   rosterLoading: boolean;
   selectedEmployee: Address | "";
-  onSelectEmployee: (addr: Address) => void;
+  onSelectEmployee: (addr: Address | string) => void;
   onRemoveEmployee: (row: EmployerRosterRow) => void;
   onUpdateEmployeeOffchain: (
     row: EmployerRosterRow,

@@ -17,7 +17,7 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
   const { address } = useAccount();
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
-  const lang = use(params).lang;
+  const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
   const [selectedPayroll, setSelectedPayroll] = useState<Address | "">("");

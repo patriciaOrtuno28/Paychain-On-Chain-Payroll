@@ -11,7 +11,7 @@ import type { Locale } from "@/i18n-config";
 export default function EmployeeHelpPage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
-  const lang = use(params).lang;
+  const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
   const [status, setStatus] = useState("");

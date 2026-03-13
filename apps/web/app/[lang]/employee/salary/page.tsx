@@ -34,7 +34,7 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
   const { address } = useAccount();
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
-  const lang = use(params).lang;
+  const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
   const [selectedPayroll, setSelectedPayroll] = useState<Address | "">("");
@@ -142,7 +142,7 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
       onSelectPayroll={onSelectPayroll}
 
       // Salary
-      salaryHandle={salaryHandle}
+      salaryHandle={salaryHandle as string | undefined}
       salaryPlain={salaryPlain}
       salaryFormatted={salaryFormatted}
       onDecryptSalary={onDecryptSalary}

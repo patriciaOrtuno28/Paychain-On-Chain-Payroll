@@ -35,7 +35,7 @@ export default function EmployeePage({ params }: { params: Promise<{ lang: strin
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();
   const router = useRouter();
-  const lang = use(params).lang;
+  const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
   const [selectedPayroll, setSelectedPayroll] = useState<Address | "">("");

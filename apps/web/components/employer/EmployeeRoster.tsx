@@ -33,7 +33,7 @@ type Props = {
   underlyingSymbol: string;
   tConfidential: ConfidentialT;
   // single payroll
-  onRunPayroll: (row: EmployerRosterRow) => void;
+  onRunPayroll?: (row: EmployerRosterRow) => void;
 };
 
 function cadenceLabel(c: string | undefined) {
@@ -208,7 +208,7 @@ export function EmployeeRoster({
                               variant="ghost"
                               size="icon"
                               title="Run payroll for this employee"
-                              onClick={() => onRunPayroll(row)}
+                              onClick={() => onRunPayroll?.(row)}
                               className="w-7 h-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
                             >
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

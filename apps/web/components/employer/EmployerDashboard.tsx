@@ -728,7 +728,12 @@ export function EmployerDashboard({
                         ))}
                       </div>
                       <Button
-                        onClick={onDecryptSalary}
+                        onClick={() => {
+                          console.info("[EmployerDashboard] decrypt salary button clicked");
+                          void onDecryptSalary().catch((e) => {
+                            console.error("[EmployerDashboard] decrypt salary button error", e);
+                          });
+                        }}
                         variant="ghost"
                         size="icon"
                         className="w-8 h-8 text-primary hover:bg-primary/10"
@@ -754,7 +759,12 @@ export function EmployerDashboard({
                         ))}
                       </div>
                       <Button
-                        onClick={onDecryptLastPayment}
+                        onClick={() => {
+                          console.info("[EmployerDashboard] decrypt last payment button clicked");
+                          void onDecryptLastPayment().catch((e) => {
+                            console.error("[EmployerDashboard] decrypt last payment button error", e);
+                          });
+                        }}
                         variant="ghost"
                         size="icon"
                         className="w-8 h-8 text-primary hover:bg-primary/10"

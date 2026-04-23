@@ -195,10 +195,16 @@ const EmployerContext = createContext<EmployerContextValue | undefined>(undefine
 
 export function EmployerContextProvider({ locale, children }: { locale: Locale; children: React.ReactNode }) {
   const router = useRouter();
-  const { address } = useAccount();
+  const { address, status: accountStatus, connector } = useAccount();
   const chainId = useChainId();
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const {
+    data: walletClient,
+    error: walletClientError,
+    status: walletClientStatus,
+    fetchStatus: walletClientFetchStatus,
+    refetch: refetchWalletClient,
+  } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
   const { switchChainAsync } = useSwitchChain();
 
@@ -220,6 +226,21 @@ export function EmployerContextProvider({ locale, children }: { locale: Locale; 
   const [employerBalancePlain, setEmployerBalancePlain] = useState<bigint | null>(null);
   const [selectedSalaryPlain, setSelectedSalaryPlain] = useState<bigint | null>(null);
   const [selectedLastPaymentPlain, setSelectedLastPaymentPlain] = useState<bigint | null>(null);
+
+  async function ensureWalletClient() {
+    if (walletClient) return walletClient;
+    if (walletClientStatus === "pending" || walletClientFetchStatus === "fetching") {
+      setStatus("⏳ Waiting for wallet signer...");
+      const refreshed = await refetchWalletClient();
+      console.info("[EmployerDecrypt] wallet client refetch", {
+        afterStatus: refreshed.status,
+        hasWalletClient: !!refreshed.data,
+        error: refreshed.error?.message,
+      });
+      if (refreshed.data) return refreshed.data;
+    }
+    return null;
+  }
 
   const [companyBinding, setCompanyBinding] = useState<Awaited<ReturnType<typeof getEmployerCompanyBinding>>>(null);
   const [companyBindingChainId, setCompanyBindingChainId] = useState<string | null>(null);
@@ -701,31 +722,123 @@ export function EmployerContextProvider({ locale, children }: { locale: Locale; 
   }
 
   async function decryptSelectedSalary() {
-    if (!walletClient || !payrollAbi || !hasCompany || !selectedSalaryHandle.data) throw new Error("Missing salary handle");
-    if (!canUseFhe) throw new Error("Switch to Sepolia to decrypt via relayer.");
-    setStatus("🔓 Decrypting selected employee salary (signature required)...");
-    const value = await userDecryptUint64({
+    console.info("[EmployerDecrypt] salary click", {
+      me,
+      payrollAddr,
+      selectedEmployee,
+      hasCompany,
+      canUseFhe,
+      hasWalletClient: !!walletClient,
+      hasHandle: !!selectedSalaryHandle.data,
       chainId,
-      walletClient,
-      contractAddress: payrollAddr,
-      handle: handleToHex32(selectedSalaryHandle.data),
+      accountStatus,
+      connectorId: connector?.id,
+      connectorName: connector?.name,
+      walletClientStatus,
+      walletClientFetchStatus,
+      walletClientError: walletClientError?.message,
     });
-    setSelectedSalaryPlain(value);
-    setStatus("✅ Salary decrypted");
+    const activeWalletClient = await ensureWalletClient();
+    if (!activeWalletClient || !payrollAbi || !hasCompany || !selectedSalaryHandle.data) {
+      setStatus(
+        !selectedSalaryHandle.data
+          ? "❌ Missing salary handle"
+          : !activeWalletClient
+          ? `❌ Wallet client not ready. account=${accountStatus}, connector=${connector?.name ?? "none"}, walletClient=${walletClientStatus}${
+              walletClientError?.message ? `, error=${walletClientError.message}` : ""
+            }`
+          : "❌ Missing salary handle"
+      );
+      return;
+    }
+    if (!canUseFhe) {
+      setStatus("❌ Switch to Sepolia to decrypt via relayer.");
+      return;
+    }
+    try {
+      setStatus("🔓 Decrypting selected employee salary (signature required)...");
+      const normalizedHandle = handleToHex32(selectedSalaryHandle.data);
+      console.info("[EmployerDecrypt] salary start", {
+        payrollAddr,
+        selectedEmployee,
+        handle: normalizedHandle,
+      });
+      const value = await userDecryptUint64({
+        chainId,
+        walletClient: activeWalletClient,
+        contractAddress: payrollAddr,
+        handle: normalizedHandle,
+      });
+      setSelectedSalaryPlain(value);
+      console.info("[EmployerDecrypt] salary success", {
+        selectedEmployee,
+        value: value.toString(),
+      });
+      setStatus("✅ Salary decrypted");
+    } catch (e) {
+      console.error("[EmployerDecrypt] salary error", e);
+      setStatus(`❌ ${fmtErr(e)}`);
+    }
   }
 
   async function decryptSelectedLastPayment() {
-    if (!walletClient || !payrollAbi || !hasCompany || !selectedLastPaymentHandle.data) throw new Error("Missing last payment handle");
-    if (!canUseFhe) throw new Error("Switch to Sepolia to decrypt via relayer.");
-    setStatus("🔓 Decrypting selected employee last payment (signature required)...");
-    const value = await userDecryptUint64({
+    console.info("[EmployerDecrypt] last payment click", {
+      me,
+      payrollAddr,
+      selectedEmployee,
+      hasCompany,
+      canUseFhe,
+      hasWalletClient: !!walletClient,
+      hasHandle: !!selectedLastPaymentHandle.data,
       chainId,
-      walletClient,
-      contractAddress: payrollAddr,
-      handle: handleToHex32(selectedLastPaymentHandle.data),
+      accountStatus,
+      connectorId: connector?.id,
+      connectorName: connector?.name,
+      walletClientStatus,
+      walletClientFetchStatus,
+      walletClientError: walletClientError?.message,
     });
-    setSelectedLastPaymentPlain(value);
-    setStatus("✅ Last payment decrypted");
+    const activeWalletClient = await ensureWalletClient();
+    if (!activeWalletClient || !payrollAbi || !hasCompany || !selectedLastPaymentHandle.data) {
+      setStatus(
+        !selectedLastPaymentHandle.data
+          ? "❌ Missing last payment handle"
+          : !activeWalletClient
+          ? `❌ Wallet client not ready. account=${accountStatus}, connector=${connector?.name ?? "none"}, walletClient=${walletClientStatus}${
+              walletClientError?.message ? `, error=${walletClientError.message}` : ""
+            }`
+          : "❌ Missing last payment handle"
+      );
+      return;
+    }
+    if (!canUseFhe) {
+      setStatus("❌ Switch to Sepolia to decrypt via relayer.");
+      return;
+    }
+    try {
+      setStatus("🔓 Decrypting selected employee last payment (signature required)...");
+      const normalizedHandle = handleToHex32(selectedLastPaymentHandle.data);
+      console.info("[EmployerDecrypt] last payment start", {
+        payrollAddr,
+        selectedEmployee,
+        handle: normalizedHandle,
+      });
+      const value = await userDecryptUint64({
+        chainId,
+        walletClient: activeWalletClient,
+        contractAddress: payrollAddr,
+        handle: normalizedHandle,
+      });
+      setSelectedLastPaymentPlain(value);
+      console.info("[EmployerDecrypt] last payment success", {
+        selectedEmployee,
+        value: value.toString(),
+      });
+      setStatus("✅ Last payment decrypted");
+    } catch (e) {
+      console.error("[EmployerDecrypt] last payment error", e);
+      setStatus(`❌ ${fmtErr(e)}`);
+    }
   }
 
   async function handleDeleteCompany() {

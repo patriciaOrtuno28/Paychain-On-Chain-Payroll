@@ -31,9 +31,15 @@ const erc20Abi = [
 ] as const;
 
 export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { address } = useAccount();
+  const { address, status: accountStatus, connector } = useAccount();
   const chainId = useChainId();
-  const { data: walletClient } = useWalletClient();
+  const {
+    data: walletClient,
+    error: walletClientError,
+    status: walletClientStatus,
+    fetchStatus: walletClientFetchStatus,
+    refetch: refetchWalletClient,
+  } = useWalletClient();
   const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
@@ -97,18 +103,77 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
 
   // Decrypt salary
   const onDecryptSalary = async () => {
-    if (!salaryHandle || !walletClient || !me || !selectedPayroll) return;
+    console.info("[EmployeeSalaryPage] decrypt click", {
+      me,
+      selectedPayroll,
+      hasSalaryHandle: !!salaryHandle,
+      chainId,
+      canUseFhe: chainId === sepolia.id,
+      accountStatus,
+      connectorId: connector?.id,
+      connectorName: connector?.name,
+      walletClientStatus,
+      walletClientFetchStatus,
+      walletClientError: walletClientError?.message,
+    });
+    if (!selectedPayroll) {
+      setStatus("❌ No payroll selected.");
+      return;
+    }
+    if (!me) {
+      setStatus("❌ Wallet not connected.");
+      return;
+    }
+    let activeWalletClient = walletClient;
+    if (!activeWalletClient && (walletClientStatus === "pending" || walletClientFetchStatus === "fetching")) {
+      setStatus("⏳ Waiting for wallet signer...");
+      const refreshed = await refetchWalletClient();
+      activeWalletClient = refreshed.data;
+      console.info("[EmployeeSalaryPage] wallet client refetch", {
+        afterStatus: refreshed.status,
+        hasWalletClient: !!refreshed.data,
+        error: refreshed.error?.message,
+      });
+    }
+    if (!activeWalletClient) {
+      console.error("[EmployeeSalaryPage] wallet client unavailable", {
+        accountStatus,
+        connectorId: connector?.id,
+        connectorName: connector?.name,
+        walletClientStatus,
+        walletClientFetchStatus,
+        walletClientError,
+      });
+      setStatus(
+        `❌ Wallet client not ready. account=${accountStatus}, connector=${connector?.name ?? "none"}, walletClient=${walletClientStatus}${
+          walletClientError?.message ? `, error=${walletClientError.message}` : ""
+        }`
+      );
+      return;
+    }
+    if (!salaryHandle) {
+      setStatus("❌ Salary handle not loaded yet.");
+      return;
+    }
     try {
       setStatus("🔐 Decrypting salary...");
+      console.info("[EmployeeSalaryPage] starting decrypt", {
+        payroll: selectedPayroll,
+        handle: handleToHex32(salaryHandle),
+      });
       const result = await userDecryptUint64({
         chainId: sepolia.id,
-        walletClient,
+        walletClient: activeWalletClient,
         contractAddress: selectedPayroll as Address,
         handle: handleToHex32(salaryHandle)
       });
       setSalaryPlain(result);
       const formatted = formatUnits(result, tokenDecimals ?? 18);
       setSalaryFormatted(formatted);
+      console.info("[EmployeeSalaryPage] decrypt success", {
+        raw: result.toString(),
+        formatted,
+      });
       setStatus("✅ Salary decrypted successfully!");
     } catch (err) {
       console.error("Failed to decrypt salary:", err);
@@ -117,6 +182,7 @@ export default function EmployeeSalaryPage({ params }: { params: Promise<{ lang:
   };
 
   const onSelectPayroll = (addr: Address | "") => {
+    console.info("[EmployeeSalaryPage] payroll selected", { payroll: addr || "(none)" });
     setSelectedPayroll(addr);
     setSalaryPlain(null);
     setSalaryFormatted(null);

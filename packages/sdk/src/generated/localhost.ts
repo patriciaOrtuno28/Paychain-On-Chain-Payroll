@@ -1313,17 +1313,17 @@ export const abis = {
     },
     {
       "inputs": [],
-      "name": "EmptyCompanyName",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "InvalidToken",
       "type": "error"
     },
     {
       "inputs": [],
-      "name": "UnknownCompanyContract",
+      "name": "NoCompanyRegistered",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnauthorizedLookup",
       "type": "error"
     },
     {
@@ -1332,23 +1332,17 @@ export const abis = {
         {
           "indexed": true,
           "internalType": "address",
-          "name": "employer",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
           "name": "payroll",
           "type": "address"
         },
         {
-          "indexed": false,
-          "internalType": "string",
-          "name": "companyName",
-          "type": "string"
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "companyRef",
+          "type": "bytes32"
         }
       ],
-      "name": "CompanyRegistered",
+      "name": "PayrollDeleted",
       "type": "event"
     },
     {
@@ -1357,113 +1351,24 @@ export const abis = {
         {
           "indexed": true,
           "internalType": "address",
-          "name": "employee",
+          "name": "payroll",
           "type": "address"
         },
         {
           "indexed": true,
-          "internalType": "address",
-          "name": "payroll",
-          "type": "address"
+          "internalType": "bytes32",
+          "name": "companyRef",
+          "type": "bytes32"
         }
       ],
-      "name": "EmployeeLinkedToCompany",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "payroll",
-          "type": "address"
-        }
-      ],
-      "name": "EmployeeUnlinkedFromCompany",
+      "name": "PayrollDeployed",
       "type": "event"
     },
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "companiesOfEmployee",
-      "outputs": [
-        {
-          "internalType": "address[]",
-          "name": "",
-          "type": "address[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "companyAt",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "companyCount",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "companyNameOfPayroll",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
+          "name": "employer_",
           "type": "address"
         }
       ],
@@ -1486,7 +1391,46 @@ export const abis = {
           "type": "address"
         }
       ],
-      "name": "employerOfCompany",
+      "name": "companyRefOfPayroll",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "deleteCompany",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isRegisteredPayroll",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "myCompany",
       "outputs": [
         {
           "internalType": "address",
@@ -1500,35 +1444,9 @@ export const abis = {
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "onEmployeeAdded",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "onEmployeeRemoved",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "companyName",
-          "type": "string"
+          "internalType": "bytes32",
+          "name": "companyRef",
+          "type": "bytes32"
         }
       ],
       "name": "registerCompany",
@@ -1539,13 +1457,6 @@ export const abis = {
           "type": "address"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "deleteCompany",
-      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -1563,34 +1474,6 @@ export const abis = {
       "type": "function"
     }
   ],
-  "IPayrollFactoryRegistryHook": [
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "onEmployeeAdded",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "onEmployeeRemoved",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
-  ],
   "Payroll": [
     {
       "inputs": [
@@ -1605,14 +1488,9 @@ export const abis = {
           "type": "address"
         },
         {
-          "internalType": "string",
-          "name": "companyName_",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "registry_",
-          "type": "address"
+          "internalType": "bytes32",
+          "name": "companyRef_",
+          "type": "bytes32"
         }
       ],
       "stateMutability": "nonpayable",
@@ -1647,12 +1525,28 @@ export const abis = {
           "type": "address"
         },
         {
-          "internalType": "uint64",
-          "name": "period",
-          "type": "uint64"
+          "internalType": "bytes32",
+          "name": "runId",
+          "type": "bytes32"
         }
       ],
-      "name": "AlreadyPaidForPeriod",
+      "name": "AlreadyPaidForRun",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "provided",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxAllowed",
+          "type": "uint256"
+        }
+      ],
+      "name": "BatchTooLarge",
       "type": "error"
     },
     {
@@ -1662,12 +1556,17 @@ export const abis = {
     },
     {
       "inputs": [],
+      "name": "EmployeeAlreadyActive",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "InvalidAddress",
       "type": "error"
     },
     {
       "inputs": [],
-      "name": "InvalidPeriod",
+      "name": "InvalidRunId",
       "type": "error"
     },
     {
@@ -1678,6 +1577,16 @@ export const abis = {
     {
       "inputs": [],
       "name": "PayrollNotOperator",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PayrollNotWrapperOperator",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
       "type": "error"
     },
     {
@@ -1713,15 +1622,8 @@ export const abis = {
     },
     {
       "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "EmployeeAdded",
+      "inputs": [],
+      "name": "PayrollDeactivated",
       "type": "event"
     },
     {
@@ -1729,37 +1631,18 @@ export const abis = {
       "inputs": [
         {
           "indexed": true,
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "EmployeeRemoved",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "employer",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
+          "internalType": "bytes32",
+          "name": "runId",
+          "type": "bytes32"
         },
         {
           "indexed": false,
-          "internalType": "uint64",
-          "name": "period",
-          "type": "uint64"
+          "internalType": "uint256",
+          "name": "employeeCount",
+          "type": "uint256"
         }
       ],
-      "name": "PayrollExecutedForPeriod",
+      "name": "PayrollRunExecuted",
       "type": "event"
     },
     {
@@ -1838,19 +1721,6 @@ export const abis = {
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "employee",
-          "type": "address"
-        }
-      ],
-      "name": "SalarySet",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "DEFAULT_ADMIN_ROLE",
       "outputs": [
@@ -1877,6 +1747,19 @@ export const abis = {
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "MAX_BATCH_SIZE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -1891,35 +1774,15 @@ export const abis = {
     },
     {
       "inputs": [],
-      "name": "companyName",
+      "name": "companyRef",
       "outputs": [
         {
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "deactivated",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "deactivate",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1936,45 +1799,20 @@ export const abis = {
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "employeeAt",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
+      "inputs": [],
+      "name": "deactivate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "employees",
+      "name": "deactivated",
       "outputs": [
         {
-          "internalType": "address[]",
+          "internalType": "bool",
           "name": "",
-          "type": "address[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "employeesCount",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -2081,12 +1919,12 @@ export const abis = {
           "type": "address"
         }
       ],
-      "name": "lastPaidPeriodOfEmployee",
+      "name": "lastPaymentOfEmployee",
       "outputs": [
         {
-          "internalType": "uint64",
+          "internalType": "euint64",
           "name": "",
-          "type": "uint64"
+          "type": "bytes32"
         }
       ],
       "stateMutability": "view",
@@ -2100,10 +1938,10 @@ export const abis = {
           "type": "address"
         }
       ],
-      "name": "lastPaymentOfEmployee",
+      "name": "lastRunIdOfEmployee",
       "outputs": [
         {
-          "internalType": "euint64",
+          "internalType": "bytes32",
           "name": "",
           "type": "bytes32"
         }
@@ -2113,12 +1951,12 @@ export const abis = {
     },
     {
       "inputs": [],
-      "name": "myLastPaidPeriod",
+      "name": "myEmploymentActive",
       "outputs": [
         {
-          "internalType": "uint64",
+          "internalType": "bool",
           "name": "",
-          "type": "uint64"
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -2139,12 +1977,62 @@ export const abis = {
     },
     {
       "inputs": [],
+      "name": "myLastRunId",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "mySalary",
       "outputs": [
         {
           "internalType": "euint64",
           "name": "",
           "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "myWrapperOperatorApproved",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "employee_",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "runId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "paidInRun",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -2169,19 +2057,6 @@ export const abis = {
       "outputs": [
         {
           "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "registry",
-      "outputs": [
-        {
-          "internalType": "contract IPayrollFactoryRegistryHook",
           "name": "",
           "type": "address"
         }
@@ -2223,6 +2098,29 @@ export const abis = {
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "externalEuint64",
+          "name": "encryptedAmount",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "inputProof",
+          "type": "bytes"
+        }
+      ],
+      "name": "requestUnwrap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "bytes32",
           "name": "role",
           "type": "bytes32"
@@ -2246,12 +2144,12 @@ export const abis = {
           "type": "address[]"
         },
         {
-          "internalType": "uint64",
-          "name": "period",
-          "type": "uint64"
+          "internalType": "bytes32",
+          "name": "runId",
+          "type": "bytes32"
         }
       ],
-      "name": "runPayrollBatchForPeriod",
+      "name": "runPayrollBatchForRun",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -2264,12 +2162,12 @@ export const abis = {
           "type": "address"
         },
         {
-          "internalType": "uint64",
-          "name": "period",
-          "type": "uint64"
+          "internalType": "bytes32",
+          "name": "runId",
+          "type": "bytes32"
         }
       ],
-      "name": "runPayrollForPeriod",
+      "name": "runPayrollForRun",
       "outputs": [
         {
           "internalType": "euint64",
@@ -2364,12 +2262,10 @@ export const deployedContractNames = [
   "PayrollFactoryRegistry"
 ] as const;
 export const abiOnlyContractNames = [
-  "IPayrollFactoryRegistryHook",
   "Payroll"
 ] as const;
 
 export const MockERC20 = { address: addresses.MockERC20, abi: abis.MockERC20 } as const;
 export const PayrollConfidentialWrapper = { address: addresses.PayrollConfidentialWrapper, abi: abis.PayrollConfidentialWrapper } as const;
 export const PayrollFactoryRegistry = { address: addresses.PayrollFactoryRegistry, abi: abis.PayrollFactoryRegistry } as const;
-export const IPayrollFactoryRegistryHookAbi = abis.IPayrollFactoryRegistryHook;
 export const PayrollAbi = abis.Payroll;

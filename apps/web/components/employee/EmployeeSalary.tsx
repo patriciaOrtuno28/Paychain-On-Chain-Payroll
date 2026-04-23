@@ -223,7 +223,15 @@ export function EmployeeSalary({
                 {/* Decrypt Button - Enhanced */}
                 <div className="space-y-4">
                   <Button
-                    onClick={onDecryptSalary}
+                    onClick={() => {
+                      console.info("[EmployeeSalary] decrypt button clicked", {
+                        selectedPayroll,
+                        hasSalaryHandle: !!salaryHandle,
+                      });
+                      void onDecryptSalary().catch((e) => {
+                        console.error("[EmployeeSalary] decrypt button error", e);
+                      });
+                    }}
                     variant="default"
                     className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                     disabled={!salaryHandle || !selectedPayroll}

@@ -1,7 +1,16 @@
 import type { Address, Hex, WalletClient } from "viem";
 import { pad, toHex, bytesToHex, isHex } from "viem";
+import { RELAYER_SDK_VERSION } from "./fheConfig";
 
 let _instancePromise: Promise<any> | null = null;
+
+function fheDebug(step: string, data?: Record<string, unknown>) {
+  if (data) {
+    console.info(`[FHE] ${step}`, data);
+    return;
+  }
+  console.info(`[FHE] ${step}`);
+}
 
 // Handle normalization: the SDK can return handles in various formats (hex string, Uint8Array, Buffer, etc.) 
 // We need to ensure it's always a bytes32 hex string to interact with the contract.
@@ -71,6 +80,7 @@ export async function getFhevmInstance(chainId: number) {
 
   if (!_instancePromise) {
     _instancePromise = (async () => {
+      fheDebug("Loading relayer SDK bundle", { chainId, sdkVersion: RELAYER_SDK_VERSION });
       const { initSDK, createInstance, SepoliaConfig } = await import("@zama-fhe/relayer-sdk/bundle");
 
       if (typeof initSDK !== "function") {
@@ -80,6 +90,10 @@ export async function getFhevmInstance(chainId: number) {
       await initSDK();
 
       const cfg = { ...SepoliaConfig, network: (window as any).ethereum };
+      fheDebug("Creating relayer instance", {
+        chainId,
+        sdkVersion: RELAYER_SDK_VERSION,
+      });
       return createInstance(cfg);
     })();
   }
@@ -149,56 +163,101 @@ export async function userDecryptUint64(params: {
   contractAddress: Address;
   handle: Hex;
 }): Promise<bigint> {
-  const instance = await getFhevmInstance(params.chainId);
+  try {
+    fheDebug("userDecryptUint64:start", {
+      chainId: params.chainId,
+      contractAddress: params.contractAddress,
+      handle: params.handle,
+      account: params.walletClient.account?.address,
+    });
+    const instance = await getFhevmInstance(params.chainId);
 
-  if (!params.walletClient.account) throw new Error("Wallet not connected");
+    if (!params.walletClient.account) throw new Error("Wallet not connected");
 
-  const keypair = instance.generateKeypair();
+    const keypair = instance.generateKeypair();
+    fheDebug("userDecryptUint64:keypair-generated", {
+      publicKeyPreview:
+        typeof keypair.publicKey === "string"
+          ? keypair.publicKey.slice(0, 18)
+          : String(keypair.publicKey),
+    });
 
-  const handleContractPairs = [{ handle: params.handle, contractAddress: params.contractAddress }];
+    const handleContractPairs = [{ handle: params.handle, contractAddress: params.contractAddress }];
 
-  const startTimestamp = BigInt(Math.floor(Date.now() / 1000));
-  const durationDays = 10n;
-  const contractAddresses = [params.contractAddress];
+    const startTimestamp = BigInt(Math.floor(Date.now() / 1000));
+    const durationDays = 10n;
+    const contractAddresses = [params.contractAddress];
 
-  const eip712 = instance.createEIP712(keypair.publicKey, contractAddresses, Number(startTimestamp), Number(durationDays));
+    const eip712 = instance.createEIP712(keypair.publicKey, contractAddresses, Number(startTimestamp), Number(durationDays));
+    fheDebug("userDecryptUint64:eip712-created", {
+      contractAddresses,
+      startTimestamp: Number(startTimestamp),
+      durationDays: Number(durationDays),
+    });
 
-  const typedMessage = {
-    publicKey: eip712.message.publicKey,
-    contractAddresses: eip712.message.contractAddresses as readonly Address[],
-    startTimestamp,
-    durationDays,
-    extraData: eip712.message.extraData,
-  } as const;
+    const typedMessage = {
+      publicKey: eip712.message.publicKey,
+      contractAddresses: eip712.message.contractAddresses as readonly Address[],
+      startTimestamp,
+      durationDays,
+      extraData: eip712.message.extraData,
+    } as const;
 
-  const signature = await params.walletClient.signTypedData({
-    account: params.walletClient.account,
-    domain: {
-      ...eip712.domain,
-      verifyingContract: eip712.domain.verifyingContract as Address,
-    },
-    types: {
-      UserDecryptRequestVerification: eip712.types.UserDecryptRequestVerification,
-    },
-    primaryType: "UserDecryptRequestVerification",
-    message: typedMessage,
-  });
+    const signature = await params.walletClient.signTypedData({
+      account: params.walletClient.account,
+      domain: {
+        ...eip712.domain,
+        verifyingContract: eip712.domain.verifyingContract as Address,
+      },
+      types: {
+        UserDecryptRequestVerification: eip712.types.UserDecryptRequestVerification,
+      },
+      primaryType: "UserDecryptRequestVerification",
+      message: typedMessage,
+    });
 
-  const signatureHex = typeof signature === 'string' ? signature : String(signature);
+    const signatureHex = typeof signature === "string" ? signature : String(signature);
+    fheDebug("userDecryptUint64:signature-collected", {
+      signaturePreview: signatureHex.slice(0, 18),
+    });
 
-  const result = await instance.userDecrypt(
-    handleContractPairs,
-    keypair.privateKey,
-    keypair.publicKey,
-    signatureHex.replace("0x", ""),
-    contractAddresses,
-    params.walletClient.account.address,
-    Number(startTimestamp),
-    Number(durationDays),
-  );
+    const result = await instance.userDecrypt(
+      handleContractPairs,
+      keypair.privateKey,
+      keypair.publicKey,
+      signatureHex.replace("0x", ""),
+      contractAddresses,
+      params.walletClient.account.address,
+      Number(startTimestamp),
+      Number(durationDays),
+    );
+    fheDebug("userDecryptUint64:relayer-response", {
+      resultKeys: result ? Object.keys(result) : [],
+      expectedHandle: params.handle,
+    });
 
-  const v = result[params.handle];
-  if (v === undefined || v === null) throw new Error("userDecrypt result missing handle");
+    const v = result[params.handle];
+    if (v === undefined || v === null) throw new Error("userDecrypt result missing handle");
 
-  return BigInt(v);
+    fheDebug("userDecryptUint64:success", {
+      handle: params.handle,
+      value: String(v),
+    });
+    return BigInt(v);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[FHE] userDecryptUint64:error", {
+      chainId: params.chainId,
+      contractAddress: params.contractAddress,
+      handle: params.handle,
+      message,
+      error,
+    });
+    if (message.includes("HTTP error! status: 404")) {
+      throw new Error(
+        `Relayer endpoint returned 404. This app is using relayer SDK ${RELAYER_SDK_VERSION}; verify the loaded CDN bundle matches that version and that the Sepolia relayer endpoints are available.`
+      );
+    }
+    throw error;
+  }
 }

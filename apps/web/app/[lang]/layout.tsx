@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { i18n, Locale } from "@/i18n-config";
 import Script from "next/script";
+import { RELAYER_SDK_CDN_SRC } from "@/lib/fheConfig";
 
 export const metadata: Metadata = {
   title: "PayChainMe - Privacy-Preserving Onchain Payroll",
@@ -31,7 +32,7 @@ export default async function RootLayout({
         />
         <link rel="icon" href="/payroll-logo.jpg" sizes="any" />
         <Script
-          src="https://cdn.zama.org/relayer-sdk-js/0.3.0-8/relayer-sdk-js.umd.cjs"
+          src={RELAYER_SDK_CDN_SRC}
           strategy="beforeInteractive"
         />
       </head>

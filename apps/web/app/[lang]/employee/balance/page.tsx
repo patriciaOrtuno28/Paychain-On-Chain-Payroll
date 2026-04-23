@@ -16,7 +16,12 @@ import type { Locale } from "@/i18n-config";
 export default function EmployeeBalancePage({ params }: { params: Promise<{ lang: string }> }) {
   const { address } = useAccount();
   const chainId = useChainId();
-  const { data: walletClient } = useWalletClient();
+  const {
+    data: walletClient,
+    status: walletClientStatus,
+    fetchStatus: walletClientFetchStatus,
+    refetch: refetchWalletClient,
+  } = useWalletClient();
   const lang = use(params).lang as Locale;
   const t = useDictionary(lang);
 
@@ -38,6 +43,16 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
   const me = address as Address | undefined;
   const contracts = getContracts(sepolia.id);
   const payrollAddr: Address | undefined = selectedPayroll ? (selectedPayroll as Address) : undefined;
+
+  async function ensureWalletClient() {
+    if (walletClient) return walletClient;
+    if (walletClientStatus === "pending" || walletClientFetchStatus === "fetching") {
+      setStatus("⏳ Waiting for wallet signer...");
+      const refreshed = await refetchWalletClient();
+      if (refreshed.data) return refreshed.data;
+    }
+    return null;
+  }
 
   // Load employee payroll bindings
   useEffect(() => {
@@ -110,12 +125,17 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
 
   // Decrypt balance (from wrapper contract)
   const onDecryptBalance = async () => {
-    if (!balanceHandle || !walletClient || !me) return;
+    if (!balanceHandle || !me) return;
+    const activeWalletClient = await ensureWalletClient();
+    if (!activeWalletClient) {
+      setStatus("❌ Wallet client not ready.");
+      return;
+    }
     try {
       setStatus("🔐 Decrypting balance...");
       const result = await userDecryptUint64({
         chainId: sepolia.id,
-        walletClient,
+        walletClient: activeWalletClient,
         contractAddress: contracts.PayrollConfidentialWrapper.address,
         handle: handleToHex32(balanceHandle as any),
       });
@@ -129,12 +149,17 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
 
   // Decrypt last payment (from payroll contract)
   const onDecryptLastPayment = async () => {
-    if (!lastPaymentHandle || !walletClient || !me || !selectedPayroll) return;
+    if (!lastPaymentHandle || !me || !selectedPayroll) return;
+    const activeWalletClient = await ensureWalletClient();
+    if (!activeWalletClient) {
+      setStatus("❌ Wallet client not ready.");
+      return;
+    }
     try {
       setStatus("🔐 Decrypting last payment...");
       const result = await userDecryptUint64({
         chainId: sepolia.id,
-        walletClient,
+        walletClient: activeWalletClient,
         contractAddress: selectedPayroll as Address,
         handle: handleToHex32(lastPaymentHandle as any),
       });
@@ -152,7 +177,12 @@ export default function EmployeeBalancePage({ params }: { params: Promise<{ lang
   // Step 3: call instance.publicDecrypt([burntAmountHandle]) to get cleartext + proof from KMS
   // Step 4: call wrapper.finalizeUnwrap() — this is what actually sends USDC to the wallet
   const onRequestUnwrap = async (amountRaw: bigint, toAddress: Address) => {
-    if (!me || !walletClient || !publicClient) return;
+    if (!me || !publicClient) return;
+    const activeWalletClient = await ensureWalletClient();
+    if (!activeWalletClient) {
+      setStatus("❌ Wallet client not ready.");
+      return;
+    }
     setIsUnwrapping(true);
     try {
       // Step 1 — encrypt + submit unwrap tx
